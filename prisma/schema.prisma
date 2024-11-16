@@ -1,0 +1,63 @@
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  email     String    @unique
+  name      String?
+  logo      String?
+  company   String?
+  address   String?
+  phone     String?
+  invoices  Invoice[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Invoice {
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  number      String        @unique
+  user        User          @relation(fields: [userId], references: [id])
+  userId      String        @db.ObjectId
+  client      Client        @relation(fields: [clientId], references: [id])
+  clientId    String        @db.ObjectId
+  items       InvoiceItem[]
+  subtotal    Float
+  tax         Float
+  total       Float
+  status      String        @default("draft") // draft, sent, paid
+  dueDate     DateTime
+  stripeUrl   String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model Client {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  email     String
+  company   String?
+  address   String?
+  phone     String?
+  invoices  Invoice[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model InvoiceItem {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  description String
+  quantity    Int
+  price       Float
+  total       Float
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id])
+  invoiceId   String   @db.ObjectId
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
